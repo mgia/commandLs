@@ -19,6 +19,6 @@ int		ft_strchri(const char *s, int c)
 	i = -1;
 	while (s[++i])
 		if (s[i] == c)
-			break ;
-	return (i);
+			return (i);
+	return (-1);
 }
