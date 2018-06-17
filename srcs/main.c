@@ -193,101 +193,72 @@ t_file	*read_folder(char path[PATH_MAX], char *name, int flags)
 	return (file);
 }
 
-# define ASCII 0
-# define REVERSE 1
-# define TIME 2
+int		ft_ascii(t_file *a, t_file *b)
+{
+	return (ft_strcmp(a->name, b->name) < 0);
+}
 
-// static int	sort_validate(t_file *a, t_file *b, int option)
-// {
-// 	if (option == REVERSE)
-// 		return ((ft_strcmp(a->name, b->name) > 0));
-// 	else (option == TIME
-// 			? (
-// 				a->time > b->time ||
-// 				(a->time == b->time && a->ntime > b->ntime)
-// 			)
-// 			: (ft_strcmp(a->name, b->name) < 0)
-// 		)
-// 	)
-// }
+int		ft_time(t_file *a, t_file *b)
+{
+	return (a->time > b->time || (a->time == b->time
+		&& a->ntime > b->ntime));
+}
 
-t_file	*SortedMerge(t_file *a, t_file *b, int option)
+t_file	*join(t_file *a, t_file *b, int (*f)(t_file*, t_file*))
 {
 	t_file	*result;
 
 	result = NULL;
-	if (a == NULL)
+	if (!a)
 		return (b);
-	else if (b == NULL)
+	else if (!b)
 		return (a);
-	if (option == REVERSE
-		? (ft_strcmp(a->name, b->name) > 0)
-		: (option == TIME
-			? (
-				a->time > b->time ||
-				(a->time == b->time && a->ntime > b->ntime)
-			)
-			: (ft_strcmp(a->name, b->name) < 0)
-		)
-	)
+	if (f(a, b))
 	{
 		result = a;
-		result->next = SortedMerge(a->next, b, option);
+		result->next = join(a->next, b, f);
 	}
 	else
 	{
 		result = b;
-		result->next = SortedMerge(a, b->next, option);
+		result->next = join(a, b->next, f);
 	}
 	return (result);
 }
 
-void FrontBackSplit(t_file *source,
-	t_file** frontRef, t_file** backRef)
+void	split_list(t_file *source, t_file** frontRef, t_file** backRef)
+{
+	t_file	*fast;
+	t_file	*slow;
+
+	slow = source;
+	fast = source->next;
+	while (fast)
 	{
-		t_file* fast;
-		t_file* slow;
-		slow = source;
-		fast = source->next;
-
-		/* Advance 'fast' two nodes, and advance 'slow' one node */
-		while (fast != NULL)
+		fast = fast->next;
+		if (fast)
 		{
+			slow = slow->next;
 			fast = fast->next;
-			if (fast != NULL)
-			{
-				slow = slow->next;
-				fast = fast->next;
-			}
 		}
-
-		/* 'slow' is before the midpoint in the list, so split it in two
-		at that point. */
-		*frontRef = source;
-		*backRef = slow->next;
-		slow->next = NULL;
+	}
+	*frontRef = source;
+	*backRef = slow->next;
+	slow->next = NULL;
 }
 
-/* sorts the linked list by changing next pointers (not data) */
-void MergeSort(t_file **headRef, int option)
+void	mergeSort(t_file **headRef, int (*f)(t_file*, t_file*))
 {
 	t_file*		head = *headRef;
 	t_file*		a;
 	t_file*		b;
 
-	/* Base case -- length 0 or 1 */
-	if ((head == NULL) || (head->next == NULL))
-		return;
-
-	/* Split head into 'a' and 'b' sublists */
-	FrontBackSplit(head, &a, &b);
-
-	/* Recursively sort the sublists */
-	MergeSort(&a, option);
-	MergeSort(&b, option);
-
-	/* answer = merge the two sorted lists together */
-	*headRef = SortedMerge(a, b, option);
+	if (!head || !head->next)
+		return ;
+	split_list(head, &a, &b);
+	mergeSort(&a, f);
+	mergeSort(&b, f);
+	*headRef = join(a, b, f);
 }
 
 void	reverse_list(t_file **list)
@@ -311,9 +282,9 @@ void	reverse_list(t_file **list)
 
 void	sort_list(t_file **list, int flags)
 {
-	MergeSort(list, ASCII);
+	mergeSort(list, &ft_ascii);
 	if (flags & LS_T)
-		MergeSort(list, TIME);
+		mergeSort(list, &ft_time);
 	if (flags & LS_R)
 		reverse_list(list);
 }
