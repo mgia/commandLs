@@ -6,6 +6,7 @@
 # include <limits.h>
 # include <sys/stat.h>
 # include <sys/types.h>
+ #include <sys/ioctl.h>
 # include <dirent.h>
 
 # include "libft.h"
