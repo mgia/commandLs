@@ -170,29 +170,6 @@ t_file	*init_list(int count, char **names)
 	return (head);
 }
 
-/*
-** Initialize folder as list
-*/
-
-t_file	*read_folder(char path[PATH_MAX], char *name, int flags)
-{
-	t_file			*file;
-	DIR				*folder;
-	struct dirent	*entry;
-
-	file = NULL;
-	if (!(folder = opendir(path)))
-		error(name, ERRNO);
-	else
-	{
-		while ((entry = readdir(folder)))
-			if ((flags & LS_A) || entry->d_name[0] != '.')
-				add_new_file(path, entry->d_name, &file);
-		closedir(folder);
-	}
-	return (file);
-}
-
 int		ft_ascii(t_file *a, t_file *b)
 {
 	return (ft_strcmp(a->name, b->name) < 0);
@@ -363,11 +340,34 @@ void	print_simple(t_file *list, int flags)
 //
 // }
 
-void	print_list(t_file *list, int flags)
+void	print_list(t_file **list, int flags)
 {
-	sort_list(&list, flags);
-	print_simple(list, flags);
+	sort_list(list, flags);
+	print_simple(*list, flags);
 	// (LS_L & flags) ? print_simple(list) : print_full(list);
+}
+
+/*
+** Initialize folder as list
+*/
+
+t_file	*read_folder(char path[PATH_MAX], char *name, int flags)
+{
+	t_file			*file;
+	DIR				*folder;
+	struct dirent	*entry;
+
+	file = NULL;
+	if (!(folder = opendir(path)))
+		error(name, ERRNO);
+	else
+	{
+		while ((entry = readdir(folder)))
+			if ((flags & LS_A) || entry->d_name[0] != '.')
+				add_new_file(path, entry->d_name, &file);
+		closedir(folder);
+	}
+	return (file);
 }
 
 static void		print_path(char *full_path, int count, int *first)
@@ -398,7 +398,7 @@ void	print_folders(t_file *list, int flags, int first, int count)
 			file = read_folder(list->full_path, list->name, flags);
 			if (file)
 			{
-				print_list(file, flags);
+				print_list(&file, flags);
 				print_folders(file, flags, 0, -1);
 			}
 		}
@@ -422,7 +422,7 @@ int		print_files(t_file *list, int flags)
 		}
 		list = list->next;
 	}
-	print_list(curr, flags);
+	print_list(&curr, flags);
 	return (i);
 }
 
