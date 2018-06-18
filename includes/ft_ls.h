@@ -6,9 +6,11 @@
 # include <limits.h>
 # include <sys/stat.h>
 # include <sys/types.h>
- #include <sys/ioctl.h>
+# include <sys/ioctl.h>
 # include <dirent.h>
-
+# include <pwd.h>
+# include <grp.h>
+# include <time.h>
 # include "libft.h"
 
 # define LS_L	1
@@ -23,6 +25,7 @@ typedef struct stat	t_stat;
 
 typedef struct		s_file
 {
+	blkcnt_t		st_blocks;
 	mode_t			mode;
 	nlink_t			st_nlink;
 	uid_t			st_uid;
