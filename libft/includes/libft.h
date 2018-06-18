@@ -83,6 +83,7 @@ int					ft_isupper(int c);
 int					ft_iswspace(int c);
 
 void				ft_putchar(char c);
+void				ft_putnchar(char c, int n);
 void				ft_putstr(char const *s);
 void				ft_putendl(char const *s);
 void				ft_putnbr(int n);
