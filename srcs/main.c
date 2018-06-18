@@ -121,7 +121,7 @@ t_file	*create_file(char *path, char *name, t_stat *stat)
 	file->st_rdev = stat->st_rdev;
 	file->time = stat->st_mtimespec.tv_sec;
 	file->ntime = stat->st_mtimespec.tv_nsec;
-	// file->st_blocks = stat->st_blocks;
+	file->st_blocks = stat->st_blocks;
 	get_full_path(path, name, file->full_path);
 	file->next = NULL;
 	return (file);
@@ -325,26 +325,143 @@ void	print_dimensions(t_file *list, t_point *max, t_point *dims)
 	}
 }
 
-void	print_simple(t_file *list, int flags)
+void	print_simple(t_file *list)
 {
 	t_point		max;
 	t_point		dims;
 
 	get_dimensions(list, &max, &dims);
 	print_dimensions(list, &max, &dims);
-	flags+=0;
 }
 
-// void	print_full(t_file *list)
+
+/*
+** size[0] = st_blocks
+** size[1] =
+**
+**
+**
+*/
+
+char	get_file_type(int mode)
+{
+	mode = (mode & S_IFMT);
+	if (S_ISREG(mode))
+		return ('-');
+	else if (S_ISDIR(mode))
+		return ('d');
+	else if (S_ISLNK(mode))
+		return ('l');
+	else if (S_ISBLK(mode))
+		return ('b');
+	else if (S_ISCHR(mode))
+		return ('c');
+	else if (S_ISSOCK(mode))
+		return ('s');
+	else if (S_ISFIFO(mode))
+		return ('p');
+	return ('-');
+}
+
+void	print_chmod(t_file **file)
+{
+	char	chmod[11];
+	int		mode;
+
+	mode = (*file)->mode;
+	chmod[0] = get_file_type((*file)->mode);
+	chmod[1] = (S_IRUSR & mode) ? 'r' : '-';
+	chmod[2] = (S_IWUSR & mode) ? 'w' : '-';
+	chmod[3] = (S_IXUSR & mode) ? 'x' : '-';
+	chmod[4] = (S_IRGRP & mode) ? 'r' : '-';
+	chmod[5] = (S_IWGRP & mode) ? 'w' : '-';
+	chmod[6] = (S_IXGRP & mode) ? 'x' : '-';
+	chmod[7] = (S_IROTH & mode) ? 'r' : '-';
+	chmod[8] = (S_IWOTH & mode) ? 'w' : '-';
+	chmod[9] = (S_IXOTH & mode) ? 'x' : '-';
+	chmod[10] = '\0';
+	ft_printf("%s", chmod);
+}
+
+void	print_links(t_file **file, int size)
+{
+	// ft_putnchar(ft_max(, ' ')
+	size += 0;
+	ft_printf(" %hu", (*file)->st_nlink);
+}
+
+void	print_id(t_file **file, int uid_size, int gid_size)
+{
+	ft_printf(" %s", getpwuid((*file)->st_uid)->pw_name);
+	ft_putnchar(uid_size - ft_strlen(getpwuid((*file)->st_uid)->pw_name), ' ');
+	ft_printf(" %s", getgrgid((*file)->st_gid)->gr_name);
+	ft_putnchar(gid_size - ft_strlen(getgrgid((*file)->st_gid)->gr_name), ' ');
+}
+
+void	print_size(t_file **file, int size)
+{
+	ft_printf("  %lld", (*file)->size);
+	ft_putnchar(ft_max(size - ft_nbrlen((*file)->size), ' '), 0);
+}
+
+void	print_time(t_file **file)
+{
+	char	*s;
+
+	s = ctime(&((*file)->time)) + 4;
+	ft_printf(" %.12s ", s);
+}
+
+void	print_item(t_file **file, int size[7])
+{
+	print_chmod(file);
+	print_links(file, size[1]);
+	print_id(file, size[2], size[3]);
+	print_size(file, size[4]);
+	print_time(file);
+	ft_printf("%s", (*file)->name);
+	ft_putchar('\n');
+}
+
+// void	test_show(t_file *list)
 // {
-//
 // }
+
+void	get_block_size(t_file *list, int size[7], int *blocks)
+{
+	blocks = 0;
+	size[0] = 0;
+	while (list)
+	{
+		size[1] = ft_max(ft_nbrlen(list->st_nlink), size[1]);
+		size[2] = ft_max(ft_strlen(getpwuid(list->st_uid)->pw_name), size[2]);
+		size[3] = ft_max(ft_strlen(getgrgid(list->st_gid)->gr_name), size[3]);
+		size[4] = ft_max(ft_nbrlen(list->size), size[4]);
+		// *blocks += list->st_blocks;
+		list = list->next;
+	}
+}
+
+void	print_full(t_file *list)
+{
+	int	size[7];
+	int total;
+
+	ft_bzero(size, sizeof(size));
+	get_block_size(list, size, &total);
+	ft_printf("total: %d\n", total);
+	while (list)
+	{
+
+		print_item(&list, size);
+		list = list->next;
+	}
+}
 
 void	print_list(t_file **list, int flags)
 {
 	sort_list(list, flags);
-	print_simple(*list, flags);
-	// (LS_L & flags) ? print_simple(list) : print_full(list);
+	!(LS_L & flags) ? print_simple(*list) : print_full(*list);
 }
 
 /*
