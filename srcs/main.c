@@ -385,23 +385,25 @@ void	print_chmod(t_file **file)
 
 void	print_links(t_file **file, int size)
 {
-	// ft_putnchar(ft_max(, ' ')
-	size += 0;
-	ft_printf(" %hu", (*file)->st_nlink);
+	int amt = ft_max(size - ft_nbrlen((*file)->st_nlink), 0) + 2;
+
+	ft_putnchar(' ', amt);
+	ft_printf("%hu", (*file)->st_nlink);
 }
 
-void	print_id(t_file **file, int uid_size, int gid_size)
+void	print_id(t_file **file, int uid, int gid)
 {
-	ft_printf(" %s", getpwuid((*file)->st_uid)->pw_name);
-	ft_putnchar(uid_size - ft_strlen(getpwuid((*file)->st_uid)->pw_name), ' ');
-	ft_printf(" %s", getgrgid((*file)->st_gid)->gr_name);
-	ft_putnchar(gid_size - ft_strlen(getgrgid((*file)->st_gid)->gr_name), ' ');
+	ft_putchar(' ');
+	ft_printf("%s", getpwuid((*file)->st_uid)->pw_name);
+	ft_putnchar(' ', ft_max(uid - ft_strlen(getpwuid((*file)->st_uid)->pw_name), 0) + 2);
+	ft_printf("%s", getgrgid((*file)->st_gid)->gr_name);
+	ft_putnchar(' ', ft_max(gid - ft_strlen(getgrgid((*file)->st_gid)->gr_name), 0));
 }
 
 void	print_size(t_file **file, int size)
 {
-	ft_printf("  %lld", (*file)->size);
-	ft_putnchar(ft_max(size - ft_nbrlen((*file)->size), ' '), 0);
+	ft_putnchar(' ', ft_max(size - ft_nbrlen((*file)->size), 0) + 2);
+	ft_printf("%lld", (*file)->size);
 }
 
 void	print_time(t_file **file)
@@ -412,6 +414,19 @@ void	print_time(t_file **file)
 	ft_printf(" %.12s ", s);
 }
 
+void	print_name(t_file **file)
+{
+	char buf[NAME_MAX + 1];
+	if (S_ISLNK((*file)->mode))
+	{
+		ft_bzero(buf, NAME_MAX + 1);
+		readlink((*file)->full_path, buf, NAME_MAX);
+		ft_printf("%s -> %s", (*file)->name, buf);
+	}
+	else
+		ft_printf("%s", (*file)->name);
+}
+
 void	print_item(t_file **file, int size[7])
 {
 	print_chmod(file);
@@ -419,7 +434,7 @@ void	print_item(t_file **file, int size[7])
 	print_id(file, size[2], size[3]);
 	print_size(file, size[4]);
 	print_time(file);
-	ft_printf("%s", (*file)->name);
+	print_name(file);
 	ft_putchar('\n');
 }
 
@@ -427,9 +442,9 @@ void	print_item(t_file **file, int size[7])
 // {
 // }
 
-void	get_block_size(t_file *list, int size[7], int *blocks)
+int	get_block_size(t_file *list, int size[7])
 {
-	blocks = 0;
+	int total = 0;
 	size[0] = 0;
 	while (list)
 	{
@@ -437,31 +452,31 @@ void	get_block_size(t_file *list, int size[7], int *blocks)
 		size[2] = ft_max(ft_strlen(getpwuid(list->st_uid)->pw_name), size[2]);
 		size[3] = ft_max(ft_strlen(getgrgid(list->st_gid)->gr_name), size[3]);
 		size[4] = ft_max(ft_nbrlen(list->size), size[4]);
-		// *blocks += list->st_blocks;
+		total += list->st_blocks;
 		list = list->next;
 	}
+	return total;
 }
 
-void	print_full(t_file *list)
+void	print_full(t_file *list, int type)
 {
 	int	size[7];
-	int total;
-
+	int	total;
 	ft_bzero(size, sizeof(size));
-	get_block_size(list, size, &total);
-	ft_printf("total: %d\n", total);
+	total = get_block_size(list, size);
+	if (type)
+		ft_printf("total: %d\n", total);
 	while (list)
 	{
-
 		print_item(&list, size);
 		list = list->next;
 	}
 }
 
-void	print_list(t_file **list, int flags)
+void	print_list(t_file **list, int flags, int type)
 {
 	sort_list(list, flags);
-	!(LS_L & flags) ? print_simple(*list) : print_full(*list);
+	!(LS_L & flags) ? print_simple(*list) : print_full(*list, type);
 }
 
 /*
@@ -509,13 +524,14 @@ void	print_folders(t_file *list, int flags, int first, int count)
 		return ;
 	while (list)
 	{
-		if (S_ISDIR(list->mode))
+		if (S_ISDIR(list->mode) && (first || (ft_strcmp(list->name, ".")
+			&& ft_strcmp(list->name, ".."))))
 		{
 			print_path(list->full_path, count, &first);
 			file = read_folder(list->full_path, list->name, flags);
 			if (file)
 			{
-				print_list(&file, flags);
+				print_list(&file, flags, 1);
 				print_folders(file, flags, 0, -1);
 			}
 		}
@@ -535,17 +551,18 @@ int		print_files(t_file *list, int flags)
 		if (!S_ISDIR(list->mode))
 		{
 			add_new_file("", list->name, &curr);
-			i = 0;
+			i++;
 		}
 		list = list->next;
 	}
-	print_list(&curr, flags);
+	print_list(&curr, flags, 0);
 	return (i);
 }
 
 void	print_args(t_file *list, int flags, int count)
 {
 	int		i;
+
 	i = print_files(list, flags);
 	if (count - i > 0)
 		print_folders(list, flags, i ? 1 : 2, count);
