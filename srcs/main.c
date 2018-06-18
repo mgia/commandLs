@@ -289,22 +289,88 @@ void	sort_list(t_file **list, int flags)
 		reverse_list(list);
 }
 
+typedef struct s_point
+{
+	int		x;
+	int		y;
+}				t_point;
+
 /*
 ** Print functions
 */
 
-void	print_list(t_file *list, int flags)
+int		ft_max(int a, int b)
 {
-	sort_list(&list, flags);
-	flags += 0;
+	return (a > b ? a : b);
+}
+
+void	get_dimensions(t_file *list, t_point *max, t_point *dims)
+{
+	struct ttysize	ts;
+
+	ioctl(0, TIOCGWINSZ, &ts);
+	max->y = 0;
+	max->x = 0;
+	dims->y = 0;
 	while (list)
 	{
-		ft_printf("%s ", (list)->name);
-		(list) = (list)->next;
+		max->x = ft_max(ft_strlen(list->name), max->x);
+		dims->y++;
+		list = list->next;
+	}
+	max->x += 8;
+	dims->x = ts.ts_cols / max->x;
+	dims->y = (dims->y / dims->x) + (dims->y % dims->x ? 1 : 0);
+}
+
+void	print_dimensions(t_file *list, t_point *max, t_point *dims)
+{
+	int		count;
+	int		x;
+	int		y;
+	t_file	*next;
+
+	count = dims->y;
+	while (list && count--)
+	{
+		next = list->next;
+		x = dims->x;
+		while (list && x--)
+		{
+			ft_printf("%s", list->name);
+			ft_putnchar(' ', ft_max(max->x - ft_strlen(list->name), 0));
+			y = dims->y;
+			while (list && y--)
+				list = list->next;
+		}
+		ft_putchar('\n');
+		list = next;
 	}
 }
 
-static void		display_full_path(char *full_path, int count, int *first)
+void	print_simple(t_file *list, int flags)
+{
+	t_point		max;
+	t_point		dims;
+
+	get_dimensions(list, &max, &dims);
+	print_dimensions(list, &max, &dims);
+	flags+=0;
+}
+
+// void	print_full(t_file *list)
+// {
+//
+// }
+
+void	print_list(t_file *list, int flags)
+{
+	sort_list(&list, flags);
+	print_simple(list, flags);
+	// (LS_L & flags) ? print_simple(list) : print_full(list);
+}
+
+static void		print_path(char *full_path, int count, int *first)
 {
 	if (count != 0 && count != 1)
 	{
@@ -318,25 +384,25 @@ static void		display_full_path(char *full_path, int count, int *first)
 	}
 }
 
-void	print_folders(t_file *lst, int flags, int first, int count)
+void	print_folders(t_file *list, int flags, int first, int count)
 {
 	t_file	*file;
 
 	if (!(flags & LS_RR) && !first)
 		return ;
-	while (lst)
+	while (list)
 	{
-		if (S_ISDIR(lst->mode))
+		if (S_ISDIR(list->mode))
 		{
-			display_full_path(lst->full_path, count, &first);
-			file = read_folder(lst->full_path, lst->name, flags);
+			print_path(list->full_path, count, &first);
+			file = read_folder(list->full_path, list->name, flags);
 			if (file)
 			{
 				print_list(file, flags);
 				print_folders(file, flags, 0, -1);
 			}
 		}
-		lst = lst->next;
+		list = list->next;
 	}
 }
 
