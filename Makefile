@@ -21,6 +21,8 @@ LIBFT_DIR = libft/
 CC = gcc
 FLAGS = -Wall -Werror -Wextra
 INC = -I ./includes/ -I ./$(LIBFT_DIR)includes/
+DEBUG = -g -fsanitize=address
+# FLAGS += $(DEBUG)
 
 # files
 SRC_FILES	= $(notdir $(wildcard $(SRC_DIR)*.c))
@@ -40,7 +42,7 @@ all: $(NAME)
 
 $(NAME): $(OBJ)
 	@make -C $(LIBFT_DIR)
-	@gcc $(FLAGS) $(OBJ) $(INC) -L $(LIBFT_DIR) -lft -o $(NAME)
+	$(CC) $(FLAGS) $(OBJ) $(INC) -L $(LIBFT_DIR) -lft -o $(NAME)
 	@echo "$(GREEN)Binary $(LIGHT_GREEN)$(NAME) $(GREEN)created."
 
 $(OBJ_DIR)%.o: $(SRC_DIR)%.c
