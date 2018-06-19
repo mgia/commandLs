@@ -1,7 +1,7 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   main.c                                             :+:      :+:    :+:   */
+/*   sort.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: mtan <marvin@42.fr>                        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
@@ -12,14 +12,13 @@
 
 #include "ft_ls.h"
 
-int		main(int ac, char **av)
+int		ft_ascii(t_file *a, t_file *b)
 {
-	int		i;
-	int		flags;
-	t_file	*list;
+	return (ft_strcmp(a->name, b->name) < 0);
+}
 
-	i = parse_options(ac, av, &flags);
-	list = initialize_list(ac - i, av + i);
-	print_args(list, flags, !(ac - i) ? 1 : ac - i);
-	return (0);
+int		ft_time(t_file *a, t_file *b)
+{
+	return (a->time > b->time || (a->time == b->time
+		&& a->ntime > b->ntime));
 }

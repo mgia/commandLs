@@ -1,7 +1,7 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   main.c                                             :+:      :+:    :+:   */
+/*   parse.c                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: mtan <marvin@42.fr>                        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
@@ -12,14 +12,25 @@
 
 #include "ft_ls.h"
 
-int		main(int ac, char **av)
+void	parse_option(char *s, int *flags)
 {
 	int		i;
-	int		flags;
-	t_file	*list;
 
-	i = parse_options(ac, av, &flags);
-	list = initialize_list(ac - i, av + i);
-	print_args(list, flags, !(ac - i) ? 1 : ac - i);
-	return (0);
+	while (*(++s))
+	{
+		if ((i = ft_strchri("lRart", *s)) == -1)
+			error(s, USAGE);
+		*flags |= (1 << i);
+	}
+}
+
+int		parse_options(int ac, char **av, int *flags)
+{
+	int		i;
+
+	*flags = 0;
+	i = 0;
+	while (++i < ac && av[i][0] == '-' && av[i][1])
+		parse_option(av[i], flags);
+	return (i);
 }
