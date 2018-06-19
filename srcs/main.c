@@ -438,10 +438,6 @@ void	print_item(t_file **file, int size[7])
 	ft_putchar('\n');
 }
 
-// void	test_show(t_file *list)
-// {
-// }
-
 int	get_block_size(t_file *list, int size[7])
 {
 	int total = 0;
@@ -516,6 +512,20 @@ static void		print_path(char *full_path, int count, int *first)
 	}
 }
 
+void	free_list(t_file **list)
+{
+	t_file	*next;
+
+	next = *list;
+	while (next)
+	{
+		next = (*list)->next;
+		free((*list)->name);
+		free(*list);
+		*list = next;
+	}
+}
+
 void	print_folders(t_file *list, int flags, int first, int count)
 {
 	t_file	*file;
@@ -533,6 +543,7 @@ void	print_folders(t_file *list, int flags, int first, int count)
 			{
 				print_list(&file, flags, 1);
 				print_folders(file, flags, 0, -1);
+				free_list(&file);
 			}
 		}
 		list = list->next;
@@ -556,6 +567,7 @@ int		print_files(t_file *list, int flags)
 		list = list->next;
 	}
 	print_list(&curr, flags, 0);
+	free_list(&curr);
 	return (i);
 }
 
