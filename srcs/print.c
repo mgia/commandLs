@@ -86,7 +86,6 @@ void	print_args(t_file *list, int flags, int count)
 {
 	int		i;
 
-	sort_list(&list, flags);
 	i = print_files(list, flags);
 	if (count - i > 0)
 		print_folders(list, flags, i ? 1 : 2, count);

@@ -80,10 +80,7 @@ int					add_new_file(char *path, char *name, t_file **lst);
 **	Sorting functions
 */
 
-int					ft_ascii(t_file *a, t_file *b);
-int					ft_time(t_file *a, t_file *b);
-t_file				*join(t_file *a, t_file *b, int (*f)(t_file*, t_file*));
-void				merge_sort(t_file **head_ref, int (*f)(t_file*, t_file*));
+t_file				*lst_sort(t_file *lst, int (*f)(t_file*, t_file*));
 void				sort_list(t_file **list, int flags);
 
 /*
