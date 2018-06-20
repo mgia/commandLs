@@ -46,7 +46,6 @@ void	get_block_size(t_file *list, int size[7], int *total)
 		*total += list->st_blocks;
 		list = list->next;
 	}
-	size[5] = ft_max(size[4] - size[6] - 1, size[5]);
 }
 
 void	print_details(t_file *list, int type)
