@@ -14,12 +14,17 @@
 
 void	print_size(t_file **file, int size[7])
 {
+	int major;
+	int minor;
+
 	if (S_ISCHR((*file)->mode) || S_ISBLK((*file)->mode))
 	{
-		ft_putnchar(' ', ft_max(size[5] - ft_nbrlen((*file)->st_rdev), 0) + 1);
-		ft_printf("%d,", major((*file)->st_rdev));
-		ft_putnchar(' ', ft_max(size[6] - ft_nbrlen((*file)->st_rdev), 0) + 1);
-		ft_printf("%d", size[6], minor((*file)->st_rdev));
+		major = ft_max(size[5] - ft_nbrlen(major((*file)->st_rdev)), 0) + 2;
+		minor = ft_max(size[6] - ft_nbrlen(minor((*file)->st_rdev)), 0);
+		ft_putnchar(' ', major);
+		ft_printf("%d, ", major((*file)->st_rdev));
+		ft_putnchar(' ', minor);
+		ft_printf("%d", minor((*file)->st_rdev));
 	}
 	else
 	{
