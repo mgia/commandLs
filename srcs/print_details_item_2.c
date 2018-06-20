@@ -12,10 +12,20 @@
 
 #include "ft_ls.h"
 
-void	print_size(t_file **file, int size)
+void	print_size(t_file **file, int size[7])
 {
-	ft_putnchar(' ', ft_max(size - ft_nbrlen((*file)->size), 0) + 2);
-	ft_printf("%lld", (*file)->size);
+	if (S_ISCHR((*file)->mode) || S_ISBLK((*file)->mode))
+	{
+		ft_putnchar(' ', ft_max(size[5] - ft_nbrlen((*file)->st_rdev), 0) + 1);
+		ft_printf("%d,", major((*file)->st_rdev));
+		ft_putnchar(' ', ft_max(size[6] - ft_nbrlen((*file)->st_rdev), 0) + 1);
+		ft_printf("%d", size[6], minor((*file)->st_rdev));
+	}
+	else
+	{
+		ft_putnchar(' ', ft_max(size[4] - ft_nbrlen((*file)->size), 0) + 2);
+		ft_printf("%lld", (*file)->size);
+	}
 }
 
 void	print_time(t_file **file)

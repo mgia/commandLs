@@ -113,7 +113,7 @@ void				get_block_size(t_file *list, int size[7], int *total);
 void				print_chmod(t_file **file);
 void				print_links(t_file **file, int size);
 void				print_id(t_file **file, int uid, int gid);
-void				print_size(t_file **file, int size);
+void				print_size(t_file **file, int size[7]);
 void				print_time(t_file **file);
 void				print_name(t_file **file);
 void				print_item(t_file **file, int size[7]);
