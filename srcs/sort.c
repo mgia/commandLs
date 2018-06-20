@@ -45,7 +45,7 @@ t_file			*lst_sort(t_file *lst, int (*f)(t_file*, t_file*))
 	return (lst);
 }
 
-void		sort_list(t_file **list, int flags)
+void			sort_list(t_file **list, int flags)
 {
 	*list = lst_sort(*list, &ft_ascii);
 	if (flags & LS_T)
